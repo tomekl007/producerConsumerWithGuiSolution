@@ -18,7 +18,9 @@ public class MainLayout extends JPanel
         private JButton startButton;
         private JButton stopButton;
         private JTextArea taskOutput;
-        private int bound = 10;
+        private TextField boundText;
+        private TextField standardDeviationText;
+        private TextField meanValueText;
         ProducerConsumer producerConsumer ;
 
 
@@ -50,14 +52,29 @@ public class MainLayout extends JPanel
             taskOutput.setMargin(new Insets(5,5,5,5));
             taskOutput.setEditable(false);
 
+            JLabel labelForBound = new JLabel();
+            boundText = new TextField("10",5);
+            labelForBound.setText("set bound, standard deviation and mean value");
+            standardDeviationText = new TextField("1",3);
+            meanValueText = new TextField("10",5);
+
+
+
             JPanel panel = new JPanel();
             panel.add(startButton);
             panel.add(stopButton);
             panel.add(progressBar);
+            panel.add(labelForBound);
+            panel.add(boundText);
+            panel.add(meanValueText);
+            panel.add(standardDeviationText);
+
 
             add(panel, BorderLayout.PAGE_START);
             add(new JScrollPane(taskOutput), BorderLayout.CENTER);
             setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+
+
 
 
 
@@ -67,7 +84,7 @@ public class MainLayout extends JPanel
          * Invoked when the user presses the start button.
          */
         public void actionPerformed(ActionEvent evt) {
-            producerConsumer = new ProducerConsumer(1, 10, bound);
+            producerConsumer = new ProducerConsumer(getStandardDeviation(), getMeanValue(), getBound());
             startButton.setEnabled(false);
             stopButton.setEnabled(true);
             setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
@@ -78,15 +95,30 @@ public class MainLayout extends JPanel
             producerConsumer.execute();
         }
 
-        /**
+    private int getMeanValue() {
+        return parseInt(meanValueText.getText());
+    }
+
+    private int getStandardDeviation() {
+        return parseInt(standardDeviationText.getText());
+    }
+
+    private int getBound() {
+        return parseInt(boundText.getText());
+    }
+    private int parseInt(String s){
+        return Integer.parseInt(s);
+    }
+
+    /**
          * Invoked when task's progress property changes.
          */
         public void propertyChange(PropertyChangeEvent evt) {
             if ("progress" == evt.getPropertyName()) {
                 int progress = (Integer) evt.getNewValue();
-                progressBar.setValue(progress);
+                progressBar.setValue(progress * producerConsumer.valueToIncrementDecrement);
                 taskOutput.append(String.format(
-                        "Completed %d%% of task.\n", producerConsumer.getProgress()));
+                        "buffer is full in %d%%.\n", producerConsumer.getProgress() * producerConsumer.valueToIncrementDecrement));
             }
         }
 

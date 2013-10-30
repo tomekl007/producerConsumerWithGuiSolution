@@ -17,7 +17,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * To change this template use File | Settings | File Templates.
  */
 public class ProducerConsumer extends SwingWorker<Void, Void>{
-    AtomicInteger progress = new AtomicInteger(0);
+    final AtomicInteger progress ;
     Random normalDistribution = new Random();
     final int standardDeviation;
     final int meanValue;
@@ -25,11 +25,14 @@ public class ProducerConsumer extends SwingWorker<Void, Void>{
     final int N_CONSUMERS = Runtime.getRuntime().availableProcessors();
     Thread[] consumers = new Thread[N_CONSUMERS];
     Thread producer;
+    public final int valueToIncrementDecrement;
 
     public ProducerConsumer(int standardDeviation, int meanValue, int bound) {
         this.standardDeviation = standardDeviation;
         this.meanValue = meanValue;
         this.bound = bound;
+        valueToIncrementDecrement = 100/bound;
+        progress = new AtomicInteger(0);
     }
 
     public void startProcess() {
@@ -74,8 +77,10 @@ public class ProducerConsumer extends SwingWorker<Void, Void>{
                 Date dateToAdd = new Date();
                 System.out.println("producer -> "+ Thread.currentThread().getName()  + " try to add date to queue : " + dateToAdd.getTime());
 
-                    progress.incrementAndGet();
+                    progress.getAndIncrement();
                     queue.offer(dateToAdd, getTimeToWait(), TimeUnit.SECONDS);
+
+
                 }
                 return;
             } catch (InterruptedException e) {
@@ -87,6 +92,9 @@ public class ProducerConsumer extends SwingWorker<Void, Void>{
 
         }
     }
+
+
+
 
     /**
      * to change the maen (average) of the distribution, we add the required value;
@@ -107,6 +115,7 @@ public class ProducerConsumer extends SwingWorker<Void, Void>{
             try {
 
                 while (!isCancelled()){
+
                     Date current = queue.poll(getTimeToWait(), TimeUnit.SECONDS); //wait getTimeToWait() seconds before giving up
                     if(current == null){
                         throw new TimeoutException();
